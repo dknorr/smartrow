@@ -2,6 +2,7 @@
 
 import scipy.stats as stats
 import numpy as np
+import csv
 
 
 class Boat:
@@ -60,6 +61,7 @@ class Rower:
         self.raw_erg = erg
         self.weight_adjusted_erg = weight_adjust(erg, weight)
         self.height = height
+        self.weight = weight
         self.catch = catch
         self.slip = slip
         self.wash = wash
@@ -96,43 +98,106 @@ def score_boat(rower, boat, rescore=False):
             all_rowers.append(some_rower)
 
     heights = []
+    catches = []
+    slips = []
+    washes = []
+    finishes = []
+    peak_force_locations = []
     for some_rower in all_rowers:
         heights.append(some_rower.height)
+        catches.append(some_rower.catch)
+        slips.append(some_rower.slip)
+        washes.append(some_rower.wash)
+        finishes.append(some_rower.finish)
+        peak_force_locations.append(some_rower.peak_force_location)
 
-    height_scores = stats.zscore(np.array(heights))
+    accumulated_penalties = []
     for i in range(len(all_rowers)):
-        total_penalty = 1 - (abs(height_scores[i])*0.02)
-        height_adjusted_watts = all_rowers[i].weight_adjusted_erg * total_penalty
-        new_total_adjust_watts += height_adjusted_watts
+        accumulated_penalties.append(1)
+
+    metrics = [heights, catches, slips, washes, finishes, peak_force_locations]
+    for METRIC in metrics:
+        # By default, 2% penalty in each category, can be adjusted with conditional
+        penalty = 0.02
+        if len(np.unique(np.array(METRIC))) > 1:
+            scores = stats.zscore(np.array(METRIC))
+            for i in range(len(all_rowers)):
+                accumulated_penalties[i] = accumulated_penalties[i] - (abs(scores[i]) * penalty)
+        else:
+            for i in range(len(all_rowers)):
+                accumulated_penalties[i] = accumulated_penalties[i]
+
+    # Apply calculated penalties
+    for i in range(len(all_rowers)):
+        new_total_adjust_watts += all_rowers[i].weight_adjusted_erg * accumulated_penalties[i]
 
     return new_total_adjust_watts
 
 
+def load_data():
+    rowers = []
+    with open('rowdata.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            if line_count == 0:
+                line_count += 1
+            else:
+                # erg, weight, height, catch, slip, wash, finish, peak_force_location, first, last, side
+                athlete = Rower(int(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]),
+                                float(row[6]), float(row[7]), str(row[8]), str(row[9]), str(row[10]))
+                rowers.append(athlete)
+                line_count += 1
+    return rowers
+
+
+def find_very_avg_guys(num, pool):
+    averages = []
+    metrics = ['raw_erg', 'weight', 'height', 'catch',
+               'slip', 'wash', 'finish', 'peak_force_location']
+    for metric in metrics:
+        values = []
+        for rower in pool:
+            values.append(getattr(rower, metric))
+        averages.append(np.mean(values))
+    average_rower = Rower(averages[0], averages[1], averages[2], averages[3], averages[4], averages[5], averages[6],
+                          averages[7], 'Average', 'Guy', 'None')
+
+    rowers_with_deltas = []
+    for rower in pool:
+        diffs = []
+        for metric in metrics:
+            this_guy = getattr(rower, metric)
+            avg_guy = getattr(average_rower, metric)
+            diffs.append(abs(this_guy - avg_guy))
+        total_delta = sum(diffs)
+        rowers_with_deltas.append((total_delta, rower))
+
+    data_type = [('delta', float), ('athlete', Rower)]
+    temp = np.array(rowers_with_deltas, dtype=data_type)
+    temp = np.sort(temp, order='delta')
+
+    most_average = []
+    for i in range(num):
+        most_average.append(temp[i][1])
+
+    return most_average
+
+
 def main():
-    first_varsity = Boat(8, 'starboard')
-    rower1 = Rower(400, 183, 73, -60, -58, 35, 40, -20, 'Rower1', 'One', 'starboard')
-    rower2 = Rower(390, 190, 74, -60, -58, 35, 40, -20, 'Rower2', 'Two', 'port')
-    rower3 = Rower(380, 175, 75, -60, -58, 35, 40, -20, 'Rower3', 'Three', 'starboard')
-    rower4 = Rower(386, 160, 71, -60, -58, 35, 40, -20, 'Rower4', 'Four', 'port')
-    rower5 = Rower(401, 195, 73, -60, -58, 35, 40, -20, 'Rower5', 'Five', 'starboard')
-    rower6 = Rower(365, 170, 71, -60, -58, 35, 40, -20, 'Rower6', 'Six', 'port')
-    rower7 = Rower(425, 220, 73, -60, -58, 35, 40, -20, 'Rower7', 'Seven', 'starboard')
-    rower8 = Rower(392, 200, 73, -60, -58, 35, 40, -20, 'Rower8', 'Eight', 'port')
-    rower9 = Rower(392, 200, 73, -60, -58, 35, 40, -20, 'Rower9', 'Nine', 'starboard')
+    even_one = Boat(8, 'starboard')
+    even_two = Boat(8, 'starboard')
+    even_three = Boat(8, 'starboard')
+    fleet = [even_one, even_two, even_three]
 
-    first_varsity.add_rower(rower1, True)
-    first_varsity.add_rower(rower2, True)
-    first_varsity.add_rower(rower5)
-    first_varsity.add_rower(rower7)
-    first_varsity.add_rower(rower3)
+    pool = load_data()
+    starter_guys = find_very_avg_guys(3, pool)
 
-    print("with rower 9 predicted: ")
-    print(score_boat(rower9, first_varsity))
+    for i in range(len(fleet)):
+        fleet[i].add_rower(starter_guys[i], True)
+        pool.remove(starter_guys[i])
 
-    print("with rower 4 predicted: ")
-    print(score_boat(rower4, first_varsity))
-
-    first_varsity.print_lineup()
+    print(len(pool))
 
 
 if __name__ == '__main__':
