@@ -63,29 +63,29 @@ def upload_file():
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        file = request.files['file']
+        file_object = request.files['file']
+        file_stream = file_object.stream
         # if user does not select file, browser also
         # submit an empty part without filename
-        if file.filename == '':
+        if file_object.filename == '':
             flash('No selected file')
             return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+        if file_object and allowed_file(file_object.filename):
+            print("got a good file", file=sys.stderr)
+            filename = secure_filename(file_object.filename)
             rowers = []
-            with open(file) as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                line_count = 0
-                for row in csv_reader:
-                    if line_count == 0:
-                        line_count += 1
-                    else:
-                        # erg, weight, height, catch, slip, wash, finish, peak_force_location, first, last, side
-                        athlete = Rower(int(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]),
-                                float(row[6]), float(row[7]), str(row[8]), str(row[9]), str(row[10]))
-                        rowers.append(athlete)
-                        line_count += 1
-                print(len(rowers), file=sys.stderr)
-                return redirect('/')
+            line_count = 0
+            for row in file_stream:
+                if line_count == 0:
+                    line_count += 1
+                else:
+                    # erg, weight, height, catch, slip, wash, finish, peak_force_location, first, last, side
+                    athlete = Rower(int(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]),
+                            float(row[6]), float(row[7]), str(row[8]), str(row[9]), str(row[10]))
+                    rowers.append(athlete)
+                    line_count += 1
+            print(len(rowers), file=sys.stderr)
+            return redirect('/')
     return '''
     <!doctype html>
     <title>Upload new File</title>
