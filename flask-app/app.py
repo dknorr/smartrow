@@ -85,7 +85,7 @@ def upload_file():
                     rowers.append(athlete)
                     line_count += 1
             print(len(rowers), file=sys.stderr)
-            return redirect('/success')
+            return redirect(url_for('/dev/success', uploaded=rowers))
     return '''
     <!doctype html>
     <title>Upload new File</title>
@@ -97,8 +97,9 @@ def upload_file():
     ''' 
 
 @app.route('/success')
-def hello_world():
- return '<h1>File has been uploaded!!!</h1>'   
+def good_upload():
+    rowers = request.args.get('uploaded')
+    return '<h1>File has been uploaded!!! Found: ' + str(len(rowers)) + '</h1>'   
 
 def allowed_file(filename):
     return '.' in filename and \
