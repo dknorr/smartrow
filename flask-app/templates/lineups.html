@@ -1,0 +1,58 @@
+<!doctype html>
+<head>
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+   <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">  
+   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+</head>
+<script>
+   $(document).ready( function () {
+    $('#table_id').DataTable();
+   } );
+</script>
+<style>
+   body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 3%;
+   }
+</style>
+<body>
+   <h1>
+      Balanced Boatings
+   </h1>
+   <br/>
+   <table id="table_id" class="display">
+      <thead>
+         <tr>
+             <th>Boat</th>
+             <th>Rig</th>
+             <th>Adjusted Score (watts)</th>
+             <th>Bow</th>
+             {% for i in range((lineups[0].port|length)*2 - 2) %}
+               <th>{{ i + 2 }} Seat</th>
+             {% endfor %}
+             <th>Stroke</th>
+         </tr>
+     </thead>
+     <tbody>
+      {% for lineup in lineups %}
+      <tr>
+         <td> {{ lineup.name }} </td>
+         <td> {{ lineup.rig }} </td>
+         <td> {{ lineup.total_adjusted_watts }} </td>
+         {% if lineup.rig == 'starboard' %}
+            {% for i in range(lineup.port|length) %}
+            <td> {{ data[lineup.port[i]].last }} </td>
+            <td> {{ data[lineup.starboard[i]].last }} </td>
+            {% endfor %}
+         {% else %}
+            {% for i in range(lineup.port|length) %}
+            <td> {{ data[lineup.starboard[i]].last }} </td>
+            <td> {{ data[lineup.port[i]].last }} </td>
+            {% endfor %}
+         {% endif %}
+      </tr>
+      {% endfor %}
+     </tbody>
+   </table>
+</body>
