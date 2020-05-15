@@ -25,7 +25,6 @@
       <thead>
          <tr>
              <th>Boat</th>
-             <th>Rig</th>
              <th>Adjusted Score (watts)</th>
              <th>Bow</th>
              {% for i in range((lineups[0].port|length)*2 - 2) %}
@@ -38,7 +37,6 @@
       {% for lineup in lineups %}
       <tr>
          <td> {{ lineup.name }} </td>
-         <td> {{ lineup.rig }} </td>
          <td> {{ lineup.total_adjusted_watts }} </td>
          {% if lineup.rig == 'starboard' %}
             {% for i in range(lineup.port|length) %}

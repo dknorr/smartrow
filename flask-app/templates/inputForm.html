@@ -1,0 +1,51 @@
+<!doctype html>
+<head>
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+   <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">  
+   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+</head>
+<script>
+   $(document).ready( function () {
+    $('#table_id').DataTable();
+   } );
+</script>
+<style>
+   body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 3%;
+   }
+</style>
+<title>Upload new File</title>
+<body>
+    <h1>Generate Even Boatings</h1>
+    <form method=post enctype=multipart/form-data>
+        <div class="custom-file col-6">
+            <input type="file" class="custom-file-input" name="file" id="validatedCustomFile" required >
+            <label class="custom-file-label" for="validatedCustomFile">Select file...</label>
+            <div class="invalid-feedback">Example invalid custom file feedback</div>
+        </div>
+        <br/>
+        <br />
+        <div class="form-row">
+            <div class="form-group col-2">
+                <label for="inputClass">Boat Class</label>
+                <select id="inputClass" class="form-control" name="boatClass">
+                  <option>Pair</option>
+                  <option>Four</option>
+                  <option selected>Eight</option>
+                </select>
+            </div>
+            <div class="form-group col-2">
+                <label for="inputNumber">Starboard Rigged Boats</label>
+                <input name="boatCount" type="number" class="form-control" id="inputNumber" min="0" pattern="[0-9]" value=1>
+            </div>
+            <div class="form-group col-2">
+                <label for="inputNumber">Port Rigged Boats</label>
+                <input name="boatCount2" type="number" class="form-control" id="inputNumber" min="0" pattern="[0-9]" value=1>
+            </div>
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary" class="form-control">Generate</button>
+    </form>
+</body>

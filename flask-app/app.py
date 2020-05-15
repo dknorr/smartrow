@@ -50,6 +50,9 @@ def upload_file():
             flash('No file part')
             return redirect(request.url)
         file_object = request.files['file']
+        boat_class = request.form["boatClass"]
+        starboard_boat_count = int(request.form["boatCount"])
+        port_boat_count = int(request.form["boatCount2"])
         file_stream = file_object.stream
         data = []
         stream = codecs.iterdecode(file_object.stream, 'utf-8')
@@ -76,17 +79,9 @@ def upload_file():
                     rowers[new_rower_id] = athlete
                     line_count += 1
             loaded_data = rowers
-            boatings = make_boatings()
+            boatings = make_boatings(boat_class, starboard_boat_count, port_boat_count)
             return render_template("lineups.html", lineups = boatings, data = loaded_data)
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    ''' 
+    return render_template("inputForm.html")
 
 @app.route('/success')
 def good_upload():
@@ -337,15 +332,25 @@ def refresh_rower_pool(fleet):
     global used_guys
     used_guys = used
 
-def make_boatings():
+def make_boatings(boat_class, starboard_boat_count, port_boat_count):
     global fleet
     global used_guys
-    b1 = Boat(4, 'starboard', 'Jefferson')
-    b2 = Boat(4, 'port', 'Pippin')
-    b3 = Boat(4, 'starboard', 'Critchfield')
-    b4 = Boat(4, 'port', 'Cusano')
-    b5 = Boat(4, 'starboard', 'Kudravetz')
-    fleet = [b1, b2, b3, b4, b5]
+    size = 0
+    if boat_class == "Eight":
+        size = 8
+    elif boat_class == "Four":
+        size = 4
+    else:
+        size = 2
+    fleet = []
+    for i in range(starboard_boat_count):
+        boat_name = "Starboard " + str(i + 1)
+        this_boat = Boat(size, 'starboard', boat_name)
+        fleet.append(this_boat)
+    for i in range(port_boat_count):
+        boat_name = "Port " + str(i + 1)
+        this_boat = Boat(size, 'port', boat_name)
+        fleet.append(this_boat)
 
     starter_guys = find_very_avg_guys(len(fleet))
 
