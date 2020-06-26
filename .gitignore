@@ -1,5 +1,4 @@
 .idea
-rowdata.csv
 .aws
 flask-app/__pycache__
 flask-app/venv
