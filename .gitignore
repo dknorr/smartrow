@@ -2,3 +2,4 @@
 .aws
 flask-app/__pycache__
 flask-app/venv
+flask-app/logs
